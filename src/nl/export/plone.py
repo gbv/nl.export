@@ -21,7 +21,7 @@ __author__ = """Marc-J. Tegethoff <tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
 
 
-def get_auth_session():
+def get_auth_session() -> requests.Session:
     """"""
     headers = {'Accept': 'application/json',
                'Content-Type': 'application/json',
@@ -273,7 +273,7 @@ class LicenceModel(PloneItem):
 
         return xml
 
-    def getTitle(self):
+    def getTitle(self) -> str:
         stitles = ('Classic SingleUser',
                    "Classic Institution",
                    'Opt-In', )
