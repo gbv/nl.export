@@ -12,3 +12,11 @@
 
 __author__ = """Marc-J. Tegethoff <marc.tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
+
+
+class NoConfig(OSError):
+    pass
+
+
+class NoMember(BaseException):
+    pass
