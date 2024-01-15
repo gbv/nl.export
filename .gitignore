@@ -1,0 +1,8 @@
+*.egg-info
+.project
+.pydevproject
+*.pyc
+*.pyo
+.settings
+*.mo
+__pycache__
