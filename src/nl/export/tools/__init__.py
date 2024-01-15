@@ -1,5 +1,6 @@
-# -*- coding: UTF-8 -*-
-"""Errors
+# -*- coding: utf-8 -*-
+"""Beschreibung
+
 ##############################################################################
 #
 # Copyright (c) 2023 Verbundzentrale des GBV.
@@ -7,8 +8,3 @@
 #
 ##############################################################################
 """
-
-# Imports
-
-__author__ = """Marc-J. Tegethoff <marc.tegethoff@gbv.de>"""
-__docformat__ = 'plaintext'

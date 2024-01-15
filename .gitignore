@@ -6,3 +6,4 @@
 .settings
 *.mo
 __pycache__
+build

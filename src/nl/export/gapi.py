@@ -2,7 +2,7 @@
 """API
 ##############################################################################
 #
-# Copyright (c) 2019 Verbundzentrale des GBV.
+# Copyright (c) 2023 Verbundzentrale des GBV.
 # All Rights Reserved.
 #
 ##############################################################################
@@ -12,4 +12,3 @@
 
 __author__ = """Marc-J. Tegethoff <marc.tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
-

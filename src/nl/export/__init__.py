@@ -2,7 +2,7 @@
 """Beschreibung
 ##############################################################################
 #
-# Copyright (c) 2019 Verbundzentrale des GBV.
+# Copyright (c) 2023 Verbundzentrale des GBV.
 # All Rights Reserved.
 #
 ##############################################################################
