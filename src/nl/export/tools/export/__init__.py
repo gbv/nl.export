@@ -56,6 +56,12 @@ def main():
                                help="""Ausgabeformat (csv|xml|json). Standard ist %(default)s)""",
                                metavar="Format",
                                default="csv")
+    sub_licencees.add_argument('--ablage',
+                               nargs="?",
+                               type=Path,
+                               help="Ablageverzeichnis. ",
+                               metavar="Verzeichnis",
+                               default=Path("."))
     sub_licencees.add_argument('--status',
                                type=str,
                                help="Status der Lizenz(en). Mehrfachnennung möglich",
