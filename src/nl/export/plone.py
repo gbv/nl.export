@@ -11,9 +11,10 @@
 
 import logging
 import requests
+import typing
+import uuid
 from nl.export.config import NLACCESS_TOKEN, NLUSER_AGENT, NLBASE_URL
 from nl.export.errors import NoConfig, NoMember
-import uuid
 from urllib.parse import urlparse, urlunparse
 from pathlib import Path
 
@@ -257,6 +258,12 @@ class Product(PloneItem):
 class LicenceModel(PloneItem):
     """"""
 
+    @property
+    def lic_query(self) -> dict:
+        return {"lmuid": self.plone_uid,
+                'object_provides': ["nl.behavior.behaviors.licence.ILicenceMarker"],
+                "fullobjects": 1}
+
     def getEula(self):
         """"""
         eulaurl = self.plone_item["f_eula"]["download"]
@@ -287,26 +294,33 @@ class LicenceModel(PloneItem):
         """"""
         return self.plone_item["parent"]["title"]
 
-    def licences(self, review_state=None):
+    def licences(self, review_state: list = None) -> typing.Iterator:
         """"""
         logger = logging.getLogger(__name__)
 
-        query = {"lmuid": self.plone_uid,
-                 'object_provides': ["nl.behavior.behaviors.licence.ILicenceMarker"],
-                 "fullobjects": 1}
+        query = self.lic_query
 
         if isinstance(review_state, str):
             query["review_state"] = review_state
 
-        with self.session.get(self.search_url, params=query) as req:
-            if req.status_code != 200:
-                msg = "Keine Lizenzen gefunden"
-                logger.error(msg)
-                return []
+        def search_(surl, squery):
+            with self.session.get(self.search_url, params=query) as req:
+                if req.status_code != 200:
+                    msg = "Keine Lizenzen gefunden"
+                    logger.error(msg)
+                    yield None
 
-            res = req.json()
+                res = req.json()
 
-        return (Licence(None, plone_item=entry) for entry in res["items"])
+            for entry in res["items"]:
+                yield Licence(None, plone_item=entry)
+
+            try:
+                search_(res["batching"]["next"], {})
+            except KeyError:
+                yield None
+
+        return (entry for entry in search_(self.search_url, query) if entry is not None)
 
 
 class Licence(PloneItem):
