@@ -40,4 +40,4 @@ class LicenceModels(Enum):
 
     NLLicenceModelStandard = "Products.VDNL.content.NLLicenceModelStandard.INLLicenceModelStandard"
     NLLicenceModelOptIn = "Products.VDNL.content.NLLicenceModelOptIn.INLLicenceModelOptIn"
-    NLLicenceModelSingleUser = "Products.VDNL.content.NLLicenceModelSingleUser.INLLicenceModelSingleUser"
+    # NLLicenceModelSingleUser = "Products.VDNL.content.NLLicenceModelSingleUser.INLLicenceModelSingleUser"

@@ -18,6 +18,22 @@ __author__ = """Marc-J. Tegethoff <tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
 
 
+def get_items_found(query: dict) -> int:
+    from nl.export.plone import make_url, get_auth_session
+
+    session = get_auth_session()
+    search_url = make_url("/@search")
+
+    num_found = 0
+
+    with session.get(search_url, params=query) as req:
+        if req.status_code == 200:
+            res = req.json()
+            num_found = res.get("items_total", 0)
+
+    return num_found
+
+
 def create_config(options: Namespace) -> None:
     """"""
     from nl.export.config import NLCONFIG
@@ -45,54 +61,32 @@ def create_config(options: Namespace) -> None:
     return None
 
 
-def lmodels(options: Namespace) -> None:
-    from nl.export.config import LicenceModels
+def lizenznehmer(options: Namespace) -> None:
     from nl.export.errors import NoMember
     from nl.export.plone import make_url, get_auth_session, LicenceModel
     from pprint import pprint
-    from urllib.parse import urlparse
 
     logger = logging.getLogger(__name__)
     session = get_auth_session()
 
-    paths = [urlparse(item).path for item in options.urls]
+    for url in options.urls:
+        licencemodel = LicenceModel(plone_uid=url)
 
-    search_url = make_url("/@search")
+        query = licencemodel.lic_query
 
-    if len(paths) == 0:
-        search_params = {"object_provides": [entry.value for entry in LicenceModels],
-                         "review_state": "published"}
-    else:
-        search_params = {"path": paths}
+        if options.status is not None:
+            query["review_state"] = options.status
 
-    search_params["metadata_fields"] = ["UID"]
-    search_params["sort_on"] = "sortable_title"
+        num_found = get_items_found(query)
 
-    def search(surl: str, params={}) -> None:
-        with session.get(surl, params=params) as req:
-            if req.status_code != 200:
-                msg = "Keine Lizenz-Modelle gefunden"
-                logger.error(msg)
-                raise NoMember
+        print(f"{licencemodel.productTitle()}: {
+              num_found} Lizenz(en) gefunden")
 
-            res = req.json()
+        for licencee in licencemodel.licences(review_state=options.status):
+            print("  {}".format(
+                licencee.plone_item["licencee"]["title"]))
 
-            for item in res["items"]:
-                lmodel = LicenceModel(plone_uid=item["UID"])
-                print(lmodel.getTitle())
-                if options.verbose:
-                    pprint(lmodel.plone_item)
-
-                for licencee in lmodel.licences():
-                    print("  {}".format(
-                        licencee.plone_item["licencee"]["title"]))
-
-        try:
-            search(res["batching"]["next"])
-        except KeyError:
-            return None
-
-    search(search_url, search_params)
+    return None
 
 
 def main():
@@ -107,19 +101,18 @@ def main():
         'config', help="Konfiguration erstellen")
     sub_config.set_defaults(func=create_config)
 
-    sub_lmodels = subparsers.add_parser(
-        'lizenzmodelle', help="Lizenzmodelle anzeigen")
-    sub_lmodels.add_argument(
-        "--lizenznehmer",
-        dest='licencee',
-        action='store_true',
-        default=False,
-        help='Lizenznehmer anzeigen')
-    sub_lmodels.add_argument('urls',
-                             type=str,
-                             nargs='*',
-                             help='URL(s) von Lizenz-Modellen')
-    sub_lmodels.set_defaults(func=lmodels)
+    sub_licencees = subparsers.add_parser(
+        'lzn', help="Lizenznehmer")
+    sub_licencees.add_argument('--status',
+                               type=str,
+                               help="""Status der Lizenz(en)""",
+                               action='append',
+                               metavar="Status")
+    sub_licencees.add_argument('urls',
+                               type=str,
+                               nargs='+',
+                               help='URL(s) von Lizenz-Modellen')
+    sub_licencees.set_defaults(func=lizenznehmer)
 
     o_parser.add_argument(
         "-v",

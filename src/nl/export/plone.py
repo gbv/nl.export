@@ -45,6 +45,29 @@ def make_url(path: str) -> str:
     return urlunparse(uobj)
 
 
+def get_search_results(params: dict) -> typing.Iterator:
+    search_url = make_url("/@search")
+    session = get_auth_session()
+
+    def search_(surl, squery):
+        with session.get(surl, params=squery) as req:
+            if req.status_code != 200:
+                yield None
+
+            res = req.json()
+
+        for entry in res["items"]:
+            yield entry
+
+        try:
+            for entry in search_(res["batching"]["next"], {}):
+                yield entry
+        except KeyError:
+            yield None
+
+    return (entry for entry in search_(search_url, params) if entry is not None)
+
+
 class Registry:
 
     def __init__(self, session=None) -> None:
@@ -300,27 +323,10 @@ class LicenceModel(PloneItem):
 
         query = self.lic_query
 
-        if isinstance(review_state, str):
+        if isinstance(review_state, list):
             query["review_state"] = review_state
 
-        def search_(surl, squery):
-            with self.session.get(self.search_url, params=query) as req:
-                if req.status_code != 200:
-                    msg = "Keine Lizenzen gefunden"
-                    logger.error(msg)
-                    yield None
-
-                res = req.json()
-
-            for entry in res["items"]:
-                yield Licence(None, plone_item=entry)
-
-            try:
-                search_(res["batching"]["next"], {})
-            except KeyError:
-                yield None
-
-        return (entry for entry in search_(self.search_url, query) if entry is not None)
+        return (Licence(None, plone_item=entry) for entry in get_search_results(query))
 
 
 class Licence(PloneItem):
