@@ -45,6 +45,20 @@ def make_url(path: str) -> str:
     return urlunparse(uobj)
 
 
+def get_items_found(query: dict) -> int:
+    session = get_auth_session()
+    search_url = make_url("/@search")
+
+    num_found = 0
+
+    with session.get(search_url, params=query) as req:
+        if req.status_code == 200:
+            res = req.json()
+            num_found = res.get("items_total", 0)
+
+    return num_found
+
+
 def get_search_results(params: dict) -> typing.Iterator:
     search_url = make_url("/@search")
     session = get_auth_session()
