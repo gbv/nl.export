@@ -10,18 +10,18 @@
 """
 
 import csv
+import json
 import logging
 import re
-from types import TracebackType
 import typing
 from argparse import Namespace
 from contextlib import AbstractContextManager
 from pathlib import Path
-from typing import Any
 from nl.export.plone import get_items_found, get_auth_session
 from nl.export.plone import LicenceModel, PloneItem
 from pprint import pprint
 from tqdm import tqdm
+from types import TracebackType
 
 __author__ = """Marc-J. Tegethoff <tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
@@ -110,11 +110,37 @@ class LFormatCSV(AbstractContextManager):
         return super().__exit__(__exc_type, __exc_value, __traceback)
 
 
+class LFormatJSON(AbstractContextManager):
+
+    def __init__(self, lmodel: LicenceModel, destination: Path) -> None:
+        self.lmodel = lmodel
+        self.destination = destination.absolute()
+
+        self.jpath = None
+
+    def add_row(self, licence: dict | None, licencee: dict | None) -> dict:
+        fpath = self.jpath / f"{licencee.plone_item['uid']}.json"
+
+        with fpath.open("w") as jfh:
+            json.dump(licencee.plone_item, jfh)
+
+    def __enter__(self) -> typing.Any:
+        fname = secure_filename(self.lmodel.productTitle())
+        self.jpath = self.destination / f"{fname}"
+        self.jpath.mkdir(exist_ok=True)
+
+        return super().__enter__()
+
+    def __exit__(self, __exc_type: type[BaseException] | None, __exc_value: BaseException | None, __traceback: TracebackType | None) -> bool | None:
+        return super().__exit__(__exc_type, __exc_value, __traceback)
+
+
 def lizenznehmer(options: Namespace) -> None:
     logger = logging.getLogger(__name__)
     session = get_auth_session()
 
-    formatters = {"csv": LFormatCSV}
+    formatters = {"csv": LFormatCSV,
+                  "json": LFormatJSON}
 
     if options.format not in formatters:
         msg = "Unbekanntes Format"
