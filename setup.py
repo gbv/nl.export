@@ -40,7 +40,8 @@ setup(
     install_requires=[
         'setuptools',
         'zope.interface',
-        'requests'
+        'requests',
+        "tqdm"
     ],
     entry_points={'console_scripts': [
         'nl-export = nl.export.tools.export:main'
