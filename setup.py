@@ -41,7 +41,8 @@ setup(
         'setuptools',
         'zope.interface',
         'requests',
-        "tqdm"
+        "tqdm",
+        "lxml"
     ],
     entry_points={'console_scripts': [
         'nl-export = nl.export.tools.export:main'
