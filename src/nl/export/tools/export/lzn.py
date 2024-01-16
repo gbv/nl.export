@@ -20,12 +20,13 @@ from lxml import etree
 from pathlib import Path
 from nl.export.plone import get_items_found, get_auth_session
 from nl.export.plone import LicenceModel, PloneItem
-from pprint import pprint
 from tqdm import tqdm
 from types import TracebackType
 
 __author__ = """Marc-J. Tegethoff <tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
+
+WF_STATES_CACHE = {}
 
 
 def secure_filename(input_str: str) -> str:
@@ -42,6 +43,23 @@ def secure_filename(input_str: str) -> str:
     return safe_str.lower()
 
 
+def get_wf_state(item: dict) -> str:
+    if "@id" not in item:
+        return ""
+
+    if item["review_state"] in WF_STATES_CACHE:
+        return WF_STATES_CACHE[item["review_state"]]
+
+    session = get_auth_session()
+    wfurl = "{}/@workflow".format(item["@id"])
+
+    with session.get(wfurl) as req:
+        res = req.json()
+        WF_STATES_CACHE[item["review_state"]] = res["state"]["title"]
+
+    return WF_STATES_CACHE[item["review_state"]]
+
+
 class LFormatCSV(AbstractContextManager):
 
     def __init__(self, lmodel: LicenceModel, destination: Path) -> None:
@@ -54,7 +72,6 @@ class LFormatCSV(AbstractContextManager):
 
     def add_row(self, licence: dict | None, licencee: dict | None) -> dict:
         licencee = {} if licencee is None else licencee.plone_item
-        licence_ = {} if licence is None else licence.plone_item
 
         ipv4_allow = licencee.get("ipv4_allow", "")
         ipv4_deny = licencee.get("ipv4_deny", "")
@@ -62,7 +79,7 @@ class LFormatCSV(AbstractContextManager):
 
         row = {}
         row["user_name"] = licencee.get("uid", "")
-        row["status"] = licencee.get("review_state", "")
+        row["status"] = get_wf_state(licencee)
         row["title"] = licencee.get("title", "")
         row["street"] = licencee.get("street", "")
         row["zip"] = licencee.get("zip", "")
@@ -99,7 +116,6 @@ class LFormatCSV(AbstractContextManager):
         self.cfh = self.csvpath.open("w")
         self.writer = csv.writer(self.cfh,
                                  delimiter=';',
-                                 dialect="excel",
                                  quotechar='"',
                                  quoting=csv.QUOTE_ALL)
         self.add_row(None, None)
@@ -121,7 +137,6 @@ class LFormatJSON(AbstractContextManager):
 
     def add_row(self, licence: dict | None, licencee: dict | None) -> dict:
         fpath = self.jpath / f"{licencee.plone_item['uid']}.json"
-
         with fpath.open("w") as jfh:
             json.dump(licencee.plone_item, jfh)
 
@@ -146,7 +161,7 @@ class LFormatXML(AbstractContextManager):
         self.xfh = None
         self.dom = None
 
-    def add_row(self, licence: dict | None, licencee: dict | None) -> dict:
+    def add_row(self, licence: dict | None, licencee: dict | None) -> None:
         NL_NAMESPACE = "http://www.nationallizenzen.de/ns/nl"
         XNL = "{%s}" % NL_NAMESPACE
         NSMAP = {None: NL_NAMESPACE}
@@ -171,7 +186,7 @@ class LFormatXML(AbstractContextManager):
 
         row = {}
         row["user_name"] = licencee.get("uid", "")
-        row["status"] = licencee.get("review_state", "")
+        row["status"] = get_wf_state(licencee)
         row["title"] = licencee.get("title", "")
         row["street"] = licencee.get("street", "")
         row["zip"] = licencee.get("zip", "")
@@ -204,9 +219,8 @@ class LFormatXML(AbstractContextManager):
         fname = secure_filename(self.lmodel.productTitle())
         self.xmlpath = self.destination / f"{fname}.xml"
 
-        basexml = b"""<?xml version='1.0' encoding='UTF-8'?>
-<nl:institutions xmlns:nl="http://www.nationallizenzen.de/ns/nl">
-</nl:institutions>"""
+        basexml = b"""<?xml version='1.0' encoding='UTF-8'?>"""
+        basexml += b"""<nl:institutions xmlns:nl="http://www.nationallizenzen.de/ns/nl"></nl:institutions>"""
 
         self.dom = etree.fromstring(basexml)
 
@@ -218,7 +232,7 @@ class LFormatXML(AbstractContextManager):
                                      xml_declaration=True,
                                      encoding="UTF-8",
                                      method="xml",
-                                     pretty_print=True))
+                                     pretty_print=True,))
 
         return super().__exit__(__exc_type, __exc_value, __traceback)
 

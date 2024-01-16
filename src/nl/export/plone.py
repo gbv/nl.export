@@ -25,6 +25,7 @@ __docformat__ = 'plaintext'
 def get_auth_session() -> requests.Session:
     """"""
     headers = {'Accept': 'application/json',
+               'Accept-Language': "de",
                'Content-Type': 'application/json',
                "Authorization": f"Bearer {NLACCESS_TOKEN}",
                'User-Agent': NLUSER_AGENT}
