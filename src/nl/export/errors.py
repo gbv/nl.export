@@ -20,3 +20,7 @@ class NoConfig(OSError):
 
 class NoMember(BaseException):
     pass
+
+
+class Unauthorized(BaseException):
+    pass
