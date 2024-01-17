@@ -34,7 +34,7 @@ def create_config(options: Namespace) -> bool | None:
     logger = logging.getLogger()
     cfgpath = Path(NLCONFIG)
 
-    if cfgpath.is_file():
+    if options.force is False and cfgpath.is_file():
         msg = "Datei existiert bereits"
         logger.error(msg)
         return None

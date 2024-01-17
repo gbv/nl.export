@@ -48,6 +48,12 @@ def main():
 
     sub_config = subparsers.add_parser(
         'konfig', help="Konfiguration erstellen")
+    sub_config.add_argument(
+        "--force",
+        dest='force',
+        action='store_true',
+        default=False,
+        help='Konfiguration überschreiben, falls vorhanden')
     sub_config.set_defaults(func=create_config)
 
     sub_licencees = subparsers.add_parser(
