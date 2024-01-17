@@ -259,9 +259,8 @@ def lizenznehmer(options: Namespace) -> None:
             query["review_state"] = options.status
 
         num_found = get_items_found(query)
-
-        print(f"{licencemodel.productTitle()}: {
-              num_found} Lizenz(en) gefunden")
+        ptitle = licencemodel.productTitle()
+        print(f"""{ptitle}: {num_found} Lizenz(en) gefunden""")
 
         progress = tqdm(total=num_found)
 
