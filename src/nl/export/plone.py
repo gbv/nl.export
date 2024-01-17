@@ -14,7 +14,7 @@ import requests
 import typing
 import uuid
 from nl.export.config import NLACCESS_TOKEN, NLUSER_AGENT, NLBASE_URL
-from nl.export.errors import NoConfig, NoMember
+from nl.export.errors import NoConfig, NoMember, Unauthorized
 from urllib.parse import urlparse, urlunparse
 from pathlib import Path
 
@@ -146,6 +146,8 @@ class PloneItem:
             except ValueError:
                 self.__item_url__ = urlparse(plone_uid)
                 with self.session.get(self.item_url) as req:
+                    if req.status_code in (401, 403):
+                        raise Unauthorized
                     self.plone_item = req.json()
                     self.plone_uid = self.plone_item["UID"]
 
@@ -161,7 +163,9 @@ class PloneItem:
         params = {"UID": self.plone_uid}
 
         with self.session.get(self.search_url, params=params) as req:
-            if req.status_code != 200:
+            if req.status_code in (401, 403):
+                raise Unauthorized
+            elif req.status_code != 200:
                 msg = "Keinen Member gefunden"
                 logger.error(msg)
                 raise NoMember

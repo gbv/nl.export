@@ -34,8 +34,10 @@ def main():
     gettext.gettext = translate
 
     import argparse
-    from .conf import create_config
+    from .conf import create_config, check_config
     from .lzn import lizenznehmer
+    from nl.export.errors import NoConfig, Unauthorized
+    from nl.export.gapi import TerminalColors
 
     logger = logging.getLogger()
 
@@ -92,7 +94,20 @@ def main():
                         level=log_level)
 
     try:
+        if options.func != create_config:
+            if not check_config():
+                raise NoConfig
         options.func(options)
+    except Unauthorized:
+        msg = "Zugriff nicht erlaubt. Bitte überprüfen Sie ihre Zugangsdaten."
+        logger.error(msg)
     except AttributeError:
         logger.error("", exc_info=True)
         o_parser.print_help()
+    except NoConfig:
+        cmd = TerminalColors.bold("nl-export konfig")
+        msg = f"""Die Konfigurationsdatei ist nicht vorhanden.
+
+Diese kann mit {cmd} angelegt werden.
+                """
+        logger.error(msg)

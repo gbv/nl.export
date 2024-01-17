@@ -19,9 +19,17 @@ __author__ = """Marc-J. Tegethoff <tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
 
 
-def create_config(options: Namespace) -> None:
+def check_config() -> bool:
+    from nl.export.config import NLCONFIG
+    cfgpath = Path(NLCONFIG)
+    return cfgpath.is_file()
+
+
+def create_config(options: Namespace) -> bool | None:
     """"""
     from nl.export.config import NLCONFIG
+    from nl.export.gapi import TerminalColors
+    from urllib.parse import urlparse
 
     logger = logging.getLogger()
     cfgpath = Path(NLCONFIG)
@@ -37,10 +45,23 @@ def create_config(options: Namespace) -> None:
     cfg.set("plone", "access-token", input("Access Token: ").strip())
     cfg.set("plone", "base-url", input("CMS URL: ").strip())
 
+    if len(cfg.get("plone", "access-token")) == 0:
+        print(TerminalColors.bold("\nKein Token gesetzt"))
+        return False
+    elif len(cfg.get("plone", "base-url")) == 0:
+        print(TerminalColors.bold("\nKeine URL gesetzt"))
+        return False
+
+    uobj = urlparse(cfg.get("plone", "base-url"))
+
+    if not uobj.scheme or not uobj.hostname:
+        print(TerminalColors.bold("\nKeine valide URL gesetzt"))
+        return False
+
     with cfgpath.open("wt") as cfh:
         cfg.write(cfh)
 
-    msg = f"Konfiguration erstellt ({cfgpath.as_posix()})"
+    msg = f"\nKonfiguration erstellt ({cfgpath.as_posix()})"
     logger.info(msg)
 
-    return None
+    return True
