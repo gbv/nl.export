@@ -17,9 +17,10 @@ import typing
 from argparse import Namespace
 from contextlib import AbstractContextManager
 from lxml import etree
+from multiprocessing import Pool
 from pathlib import Path
-from nl.export.plone import get_items_found, get_auth_session
-from nl.export.plone import LicenceModel, PloneItem
+from nl.export.plone import get_items_found, get_auth_session, get_search_results
+from nl.export.plone import LicenceModel, Licence, PloneItem
 from tqdm import tqdm
 from types import TracebackType
 
@@ -27,6 +28,16 @@ __author__ = """Marc-J. Tegethoff <tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
 
 WF_STATES_CACHE = {}
+global PROGRESS
+
+
+def option_title(val: dict | str, option: str) -> str:
+    if isinstance(val, dict):
+        return val.get(option, {}).get("title", "")
+    elif isinstance(val, str):
+        return val
+
+    return val
 
 
 def secure_filename(input_str: str) -> str:
@@ -84,8 +95,8 @@ class LFormatCSV(AbstractContextManager):
         row["street"] = licencee.get("street", "")
         row["zip"] = licencee.get("zip", "")
         row["city"] = licencee.get("city", "")
-        row["county"] = licencee.get("county", {}).get("title", "")
-        row["country"] = licencee.get("country", {}).get("title", "")
+        row["county"] = option_title(licencee, "county")
+        row["country"] = option_title(licencee, "country")
         row["telephone"] = licencee.get("telephone", "")
         row["fax"] = licencee.get("fax", "")
         row["email"] = licencee.get("email", "")
@@ -93,8 +104,7 @@ class LFormatCSV(AbstractContextManager):
         row["contactperson"] = licencee.get("contactperson", "")
         row["sigel"] = licencee.get("sigel", "")
         row["ezb_id"] = ",".join(ezb_id) if isinstance(ezb_id, list) else ""
-        row["subscriber_group"] = licencee.get(
-            "subscriper_group", {}).get("title", "")
+        row["subscriber_group"] = option_title(licencee, "subscriper_group")
         row["ipv4_allow"] = ",".join(
             ipv4_allow) if isinstance(ipv4_allow, list) else ""
         row["ipv4_deny"] = ",".join(
@@ -191,8 +201,8 @@ class LFormatXML(AbstractContextManager):
         row["street"] = licencee.get("street", "")
         row["zip"] = licencee.get("zip", "")
         row["city"] = licencee.get("city", "")
-        row["county"] = licencee.get("county", {}).get("title", "")
-        row["country"] = licencee.get("country", {}).get("title", "")
+        row["county"] = option_title(licencee, "county")
+        row["country"] = option_title(licencee, "country")
         row["telephone"] = licencee.get("telephone", "")
         row["fax"] = licencee.get("fax", "")
         row["email"] = licencee.get("email", "")
@@ -200,8 +210,7 @@ class LFormatXML(AbstractContextManager):
         row["contactperson"] = licencee.get("contactperson", "")
         row["sigel"] = licencee.get("sigel", "")
         row["ezb_id"] = licencee.get("ezb_id", [])
-        row["subscriber_group"] = licencee.get(
-            "subscriper_group", {}).get("title", "")
+        row["subscriber_group"] = option_title(licencee, "subscriper_group")
         row["ipv4_allow"] = licencee.get("ipv4_allow", [])
         row["ipv4_deny"] = licencee.get("ipv4_deny", [])
         row["shib_provider_id"] = licencee.get("shib_provider_id", "")
@@ -237,9 +246,16 @@ class LFormatXML(AbstractContextManager):
         return super().__exit__(__exc_type, __exc_value, __traceback)
 
 
+def get_licence_data(lids: dict) -> None:
+    """"""
+    licence = Licence(lids["licence"])
+    licencee = PloneItem(lids["licencee"])
+
+    return (licence, licencee)
+
+
 def lizenznehmer(options: Namespace) -> None:
     logger = logging.getLogger(__name__)
-    session = get_auth_session()
 
     formatters = {"csv": LFormatCSV,
                   "json": LFormatJSON,
@@ -252,6 +268,7 @@ def lizenznehmer(options: Namespace) -> None:
 
     for url in options.urls:
         licencemodel = LicenceModel(plone_uid=url)
+        licences_ids = []
 
         query = licencemodel.lic_query
 
@@ -262,17 +279,28 @@ def lizenznehmer(options: Namespace) -> None:
         ptitle = licencemodel.productTitle()
         print(f"""{ptitle}: {num_found} Lizenz(en) gefunden""")
 
-        progress = tqdm(total=num_found)
+        if num_found == 0:
+            return None
 
-        try:
-            with formatters[options.format](licencemodel, options.ablage) as formatter:
-                for licence in licencemodel.licences(review_state=options.status):
-                    licencee = PloneItem(licence.plone_item["licencee"]["@id"])
+        with formatters[options.format](licencemodel, options.ablage) as formatter:
+            print("Lade Lizenzinfo herunter")
+
+            res = list(tqdm(get_search_results(query), total=num_found))
+            for licence in res:
+                ldict = {"licencee": licence["licencee"]["@id"],
+                         "licence": licence["@id"]}
+                licences_ids.append(ldict)
+
+            print("Export")
+            try:
+                with Pool(processes=4) as pool:
+                    ldata = list(tqdm(pool.imap(get_licence_data,
+                                                licences_ids),
+                                      total=num_found))
+
+                for licence, licencee in ldata:
                     formatter.add_row(licence, licencee)
-                    progress.update(1)
-        except Exception:
-            logger.error("", exc_info=True)
-        finally:
-            progress.close()
+            except Exception:
+                logger.error("", exc_info=True)
 
     return None
