@@ -33,7 +33,10 @@ global PROGRESS
 
 def option_title(val: dict | str, option: str) -> str:
     if isinstance(val, dict):
-        return val.get(option, {}).get("title", "")
+        val = val.get(option, {})
+        if isinstance(val, dict):
+            return val.get("title", "")
+        return val
     elif isinstance(val, str):
         return val
 
