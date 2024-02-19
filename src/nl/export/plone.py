@@ -113,7 +113,7 @@ class Registry:
 
 class PloneItem:
 
-    def __init__(self, plone_uid: str, plone_item: dict = None, session=None) -> None:
+    def __init__(self, plone_uid: str, plone_item: dict = None, session=None, expands: list = []) -> None:
         """Ein Plone Item erzeugen
 
         Args:
@@ -145,7 +145,10 @@ class PloneItem:
                 self.getItemBySearch()
             except ValueError:
                 self.__item_url__ = urlparse(plone_uid)
-                with self.session.get(self.item_url) as req:
+                params = {}
+                if len(expands) > 0:
+                    params["expand"] = expands
+                with self.session.get(self.item_url, params=params) as req:
                     if req.status_code in (401, 403):
                         raise Unauthorized
                     self.plone_item = req.json()

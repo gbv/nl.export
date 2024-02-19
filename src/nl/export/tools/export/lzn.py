@@ -251,8 +251,13 @@ class LFormatXML(AbstractContextManager):
 
 def get_licence_data(lids: dict) -> None:
     """"""
-    licence = Licence(lids["licence"])
-    licencee = PloneItem(lids["licencee"])
+    licence = Licence(lids["licence"], expands=["completerelations"])
+
+    try:
+        licencee = PloneItem(
+            None, plone_item=licence.plone_item["@components"]["completerelations"]["licencee"])
+    except Exception:
+        licencee = PloneItem(lids["licencee"])
 
     return (licence, licencee)
 
