@@ -153,6 +153,8 @@ class PloneItem:
                         raise Unauthorized
                     self.plone_item = req.json()
                     self.plone_uid = self.plone_item["UID"]
+            except IndexError:
+                pass
 
     @property
     def item_url(self):
