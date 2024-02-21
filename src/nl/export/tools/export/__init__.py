@@ -78,7 +78,7 @@ def main():
     sub_licencees.add_argument('urls',
                                type=str,
                                nargs='+',
-                               help='URL(s) von Lizenz-Modellen')
+                               help='URL(s) oder eindeutige Identifier (UUID) von Lizenz-Modellen oder Produkten')
     sub_licencees.set_defaults(func=lizenznehmer)
 
     o_parser.add_argument(
