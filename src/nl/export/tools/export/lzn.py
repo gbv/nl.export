@@ -19,10 +19,12 @@ from contextlib import AbstractContextManager
 from lxml import etree
 from multiprocessing import Pool
 from pathlib import Path
+from nl.export.config import LicenceModels, NLBASE_URL
 from nl.export.plone import get_items_found, get_auth_session, get_search_results
 from nl.export.plone import LicenceModel, Licence, PloneItem
 from tqdm import tqdm
 from types import TracebackType
+from urllib.parse import urlparse, urlunparse
 
 __author__ = """Marc-J. Tegethoff <tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
@@ -262,6 +264,48 @@ def get_licence_data(lids: dict) -> None:
     return (licence, licencee)
 
 
+def get_licencemodel(lurl: str) -> LicenceModel | None:
+    """Lizenz-Modell bestimmen
+
+    Args:
+        lurl (str): URL
+
+    Returns:
+        LicenceModel: Lizenz-Modell
+    """
+    valid_types = ["NLProduct"] + [entry.name for entry in list(LicenceModels)]
+    urlobj = urlparse(lurl)
+    baseurl = urlparse(NLBASE_URL)
+
+    if urlobj.hostname != baseurl.hostname:
+        print(f"Unbekannter Host: {urlobj.hostname}")
+        return None
+
+    lmodel = PloneItem(plone_uid=urlunparse(urlobj))
+
+    if lmodel.plone_item["@type"] not in valid_types:
+        print(f"Unbekannter Typ: {lmodel.plone_item['@type']}")
+        return None
+
+    match lmodel.plone_item["@type"]:
+        case "NLProduct":
+            _lmodels = [entry for entry in lmodel.plone_item["items"]
+                        if entry["@type"] == LicenceModels.NLLicenceModelStandard.name]
+
+            if bool(len(_lmodels)):
+                lmodel = LicenceModel(plone_uid=_lmodels[0]["@id"])
+            else:
+                lmodel = None
+        case LicenceModels.NLLicenceModelStandard.name:
+            lmodel = LicenceModel("", plone_item=lmodel.plone_item)
+        case LicenceModels.NLLicenceModelOptIn.name:
+            lmodel = LicenceModel("", plone_item=lmodel.plone_item)
+        case _:
+            lmodel = None
+
+    return lmodel
+
+
 def lizenznehmer(options: Namespace) -> None:
     logger = logging.getLogger(__name__)
 
@@ -275,7 +319,11 @@ def lizenznehmer(options: Namespace) -> None:
         return None
 
     for url in options.urls:
-        licencemodel = LicenceModel(plone_uid=url)
+        licencemodel = get_licencemodel(url)  # LicenceModel(plone_uid=url)
+
+        if licencemodel is None:
+            continue
+
         licences_ids = []
 
         query = licencemodel.lic_query
