@@ -220,7 +220,7 @@ class LFormatXML(AbstractContextManager):
         row["ipv4_allow"] = licencee.get("ipv4_allow", [])
         row["ipv4_deny"] = licencee.get("ipv4_deny", [])
         row["shib_provider_id"] = licencee.get("shib_provider_id", "")
-        row["zuid"] = licencee.get("UID", "")
+        row["uid"] = licencee.get("UID", "")
         row["mtime"] = licencee.get("modified", "")
 
         inst_node = etree.Element(XNL + "institution", nsmap=NSMAP)
