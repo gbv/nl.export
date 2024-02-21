@@ -290,6 +290,12 @@ def get_licencemodel(lurl: str) -> LicenceModel | None:
         urlobj = urlparse(lurl)
         baseurl = urlparse(NLBASE_URL)
 
+        if not bool(urlobj.hostname):
+            # Wahrscheinlich getId
+            query = {"portal_type": valid_types, "getId": urlobj.path}
+            if bool(get_items_found(query)):
+                urlobj = urlparse(list(get_search_results(query))[0]["@id"])
+
         if urlobj.hostname != baseurl.hostname:
             print(f"Unbekannter Host: {urlobj.hostname}")
             return None
