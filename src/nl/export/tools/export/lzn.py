@@ -14,6 +14,7 @@ import json
 import logging
 import re
 import typing
+import uuid
 from argparse import Namespace
 from contextlib import AbstractContextManager
 from lxml import etree
@@ -273,15 +274,31 @@ def get_licencemodel(lurl: str) -> LicenceModel | None:
     Returns:
         LicenceModel: Lizenz-Modell
     """
+    def is_uuid(entry: str) -> bool:
+        try:
+            uuid.UUID(entry)
+        except ValueError:
+            return False
+
+        return True
+
     valid_types = ["NLProduct"] + [entry.name for entry in list(LicenceModels)]
-    urlobj = urlparse(lurl)
-    baseurl = urlparse(NLBASE_URL)
 
-    if urlobj.hostname != baseurl.hostname:
-        print(f"Unbekannter Host: {urlobj.hostname}")
+    if is_uuid(lurl):
+        lmodel = PloneItem(plone_uid=uuid.UUID(lurl).hex)
+    else:
+        urlobj = urlparse(lurl)
+        baseurl = urlparse(NLBASE_URL)
+
+        if urlobj.hostname != baseurl.hostname:
+            print(f"Unbekannter Host: {urlobj.hostname}")
+            return None
+
+        lmodel = PloneItem(plone_uid=urlunparse(urlobj))
+
+    if "@type" not in lmodel.plone_item:
+        print(f"Objekt nicht vorhanden: {lurl}")
         return None
-
-    lmodel = PloneItem(plone_uid=urlunparse(urlobj))
 
     if lmodel.plone_item["@type"] not in valid_types:
         print(f"Unbekannter Typ: {lmodel.plone_item['@type']}")
@@ -319,7 +336,7 @@ def lizenznehmer(options: Namespace) -> None:
         return None
 
     for url in options.urls:
-        licencemodel = get_licencemodel(url)  # LicenceModel(plone_uid=url)
+        licencemodel = get_licencemodel(url)
 
         if licencemodel is None:
             continue
