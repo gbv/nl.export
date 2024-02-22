@@ -29,11 +29,13 @@ else:
     _config_path = _config_path / ".config"
     _config_path.mkdir(exist_ok=True)
 
-NLCONFIG = _config_path / ".nl_export.conf"
-NLCONFIG_Deprecated = Path(os.environ['HOME']) / ".nl_export.conf"
+NLCONFIG = _config_path / "nl_export.conf"
+NLCONFIG_Deprecated = ((Path(os.environ['HOME']) / ".nl_export.conf"),
+                       (_config_path / ".nl_export.conf"))
 
-if NLCONFIG_Deprecated.is_file():
-    shutil.move(NLCONFIG_Deprecated, NLCONFIG)
+for cpath in NLCONFIG_Deprecated:
+    if cpath.is_file():
+        shutil.move(cpath, NLCONFIG)
 
 NLACCESS_TOKEN = None
 NLBASE_URL = None
