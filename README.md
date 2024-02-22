@@ -4,4 +4,4 @@ Mit diesem Tool **nl-export** lassen sich bestimmte Daten aus einem NL-CMS expor
 
 ## Konfiguration
 
-Die Konfigurationsdatei **.nl_export.conf** sollte sich im Heimatverzeichnis des ausführenden Nutzers befinden.
+Die Konfigurationsdatei **nl_export.conf** sollte sich in $XDG_CONFIG_HOME des ausführenden Nutzers befinden.
