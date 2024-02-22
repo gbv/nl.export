@@ -14,13 +14,26 @@ import configparser
 import os
 from enum import Enum
 from pathlib import Path
+import shutil
 
 __author__ = """Marc-J. Tegethoff <marc.tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
 
 logger = logging.getLogger(__name__)
 
-NLCONFIG = Path(os.environ['HOME']) / ".nl_export.conf"
+_config_path = Path(os.environ['HOME'])
+
+if "XDG_CONFIG_HOME" in os.environ:
+    _config_path = _config_path / os.environ["XDG_CONFIG_HOME"]
+else:
+    _config_path = _config_path / ".config"
+    _config_path.mkdir(exist_ok=True)
+
+NLCONFIG = _config_path / ".nl_export.conf"
+NLCONFIG_Deprecated = Path(os.environ['HOME']) / ".nl_export.conf"
+
+if NLCONFIG_Deprecated.is_file():
+    shutil.move(NLCONFIG_Deprecated, NLCONFIG)
 
 NLACCESS_TOKEN = None
 NLBASE_URL = None
