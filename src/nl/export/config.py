@@ -24,7 +24,7 @@ NLCONFIG = Path(os.environ['HOME']) / ".nl_export.conf"
 
 NLACCESS_TOKEN = None
 NLBASE_URL = None
-NLUSER_AGENT = "nl-export-not/1.0"
+NLUSER_AGENT = "nl-export-bot/1.0"
 
 try:
     config = configparser.ConfigParser()
