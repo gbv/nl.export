@@ -52,7 +52,12 @@ def get_items_found(query: dict) -> int:
 
     num_found = 0
 
-    with session.get(search_url, params=query) as req:
+    params = query.copy()
+
+    if "b_size" not in params:
+        params["b_size"] = 1
+
+    with session.get(search_url, params=params) as req:
         if req.status_code == 200:
             res = req.json()
             num_found = res.get("items_total", 0)
@@ -63,6 +68,11 @@ def get_items_found(query: dict) -> int:
 def get_search_results(params: dict) -> typing.Iterator:
     search_url = make_url("/@search")
     session = get_auth_session()
+
+    _params = params.copy()
+
+    if "b_size" not in _params:
+        _params["b_size"] = 100
 
     def search_(surl, squery):
         with session.get(surl, params=squery) as req:
@@ -80,7 +90,7 @@ def get_search_results(params: dict) -> typing.Iterator:
         except KeyError:
             yield None
 
-    return (entry for entry in search_(search_url, params) if entry is not None)
+    return (entry for entry in search_(search_url, _params) if entry is not None)
 
 
 class Registry:
