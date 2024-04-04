@@ -36,6 +36,7 @@ def main():
     import argparse
     from .conf import create_config, check_config
     from .lzn import lizenznehmer
+    from .proxy import lmproxy
     from nl.export.errors import NoConfig, Unauthorized
     from nl.export.gapi import TerminalColors
 
@@ -80,6 +81,10 @@ def main():
                                nargs='+',
                                help='URL(s) oder eindeutige Identifier (UUID/URL-ID) von Lizenz-Modellen oder Produkten')
     sub_licencees.set_defaults(func=lizenznehmer)
+
+    sub_proxy = subparsers.add_parser(
+        'proxy', help="Angaben aus den Einzelnutzer Lizenzmodellen für den Proxy Betrieb")
+    sub_proxy.set_defaults(func=lmproxy)
 
     o_parser.add_argument(
         "-v",
