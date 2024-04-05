@@ -14,7 +14,7 @@ import logging
 import uuid
 from argparse import Namespace
 from io import StringIO
-from nl.export.plone import get_search_results, LicenceModel
+from nl.export.plone import get_items_found, get_search_results, LicenceModel
 from urllib.parse import urlparse
 
 __author__ = """Marc-J. Tegethoff <tegethoff@gbv.de>"""
@@ -26,9 +26,15 @@ def lmproxy(options: Namespace) -> None:
 
     query = {"fullobjects": "1",
              "portal_type": "NLLicenceModelSingleUser",
-             "sort_on": "created"}
+             "sort_on": "created",
+             "b_size": 10}
 
-    with open("lmodels_singleuser.csv", "wt") as csvfh:
+    num_found = get_items_found(query)
+    logger.info(f"""{num_found} Lizenzmodelle gefunden""")
+
+    fpath = options.csvdatei
+
+    with fpath.open("wt") as csvfh:
         proxywriter = csv.writer(csvfh,
                                  delimiter=';',
                                  quotechar='"',

@@ -84,7 +84,15 @@ def main():
 
     sub_proxy = subparsers.add_parser(
         'proxy', help="Angaben aus den Einzelnutzer Lizenzmodellen für den Proxy Betrieb")
+
     sub_proxy.set_defaults(func=lmproxy)
+
+    sub_proxy.add_argument('--csvdatei',
+                           nargs="?",
+                           type=Path,
+                           help="CSV Ausgabedatei (Standard: ./lmodels_singleuser.csv)",
+                           metavar="CSVDatei",
+                           default=Path("./lmodels_singleuser.csv"))
 
     o_parser.add_argument(
         "-v",
