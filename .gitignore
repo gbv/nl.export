@@ -7,3 +7,4 @@
 *.mo
 __pycache__
 build
+dist
