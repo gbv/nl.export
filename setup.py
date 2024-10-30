@@ -35,7 +35,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         'Natural Language :: German',
-        'Operating System :: Linux',
+        'Operating System :: POSIX :: Linux',
         "License :: OSI Approved :: GNU Affero General Public License v3",
     ],
     url='https://github.com/gbv/nl.export',
