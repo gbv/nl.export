@@ -34,7 +34,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
-        'Natural Language :: Deutsch',
+        'Natural Language :: German',
         'Operating System :: Linux',
         "License :: OSI Approved :: GNU Affero General Public License v3",
     ],
