@@ -9,13 +9,14 @@
 ##############################################################################
 """
 
-import csv
-import typing
+from argparse import Namespace
 from contextlib import AbstractContextManager
-from pathlib import Path
-from types import TracebackType
 from nl.export.plone import LicenceModel
 from nl.export.utils import get_wf_state, option_title, secure_filename
+from pathlib import Path
+from types import TracebackType
+import csv
+import typing
 
 __author__ = """Marc-J. Tegethoff <tegethoff@gbv.de>"""
 __docformat__ = 'plaintext'
@@ -23,7 +24,7 @@ __docformat__ = 'plaintext'
 
 class LFormatCSV(AbstractContextManager):
 
-    def __init__(self, lmodel: LicenceModel, options: any) -> None:
+    def __init__(self, lmodel: LicenceModel, options: Namespace) -> None:
         self.lmodel = lmodel
         self.options = options
         self.destination = self.options.ablage.absolute()
