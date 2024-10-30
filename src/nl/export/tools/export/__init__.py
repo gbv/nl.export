@@ -86,6 +86,12 @@ def main():
                                type=str,
                                nargs='+',
                                help='URL(s) oder eindeutige Identifier (UUID/URL-ID) von Lizenz-Modellen oder Produkten')
+    sub_licencees.add_argument('--version',
+                               nargs="?",
+                               type=int,
+                               help="Version des Export Schemas (1|2). Standard ist 1.",
+                               metavar="Versionsnummer",
+                               default=1)
     sub_licencees.set_defaults(func=lizenznehmer)
 
     sub_proxy = subparsers.add_parser(

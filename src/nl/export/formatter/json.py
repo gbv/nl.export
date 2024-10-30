@@ -13,7 +13,6 @@ from argparse import Namespace
 from contextlib import AbstractContextManager
 from nl.export.plone import LicenceModel
 from nl.export.utils import secure_filename
-from pathlib import Path
 from types import TracebackType
 import json
 import typing
