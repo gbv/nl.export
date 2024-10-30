@@ -29,7 +29,6 @@ setup(
     long_description_content_type="text/markdown",
     keywords="VZG Python Plone Nationallizenzen",
     classifiers=[
-        'Development Status :: 1 - Production/Stable',
         'Intended Audience :: Developers',
         'Programming Language :: Python',
         "Programming Language :: Python :: 3.10",
@@ -41,7 +40,7 @@ setup(
     ],
     url='https://github.com/gbv/nl.export',
     project_urls={
-        # "PyPI": "https://pypi.python.org/pypi/nl.export",
+        "PyPI": "https://pypi.python.org/pypi/nl.export",
         "Source": "https://github.com/gbv/nl.export",
         "Tracker": "https://github.com/gbv/nl.export/issues",
     },
