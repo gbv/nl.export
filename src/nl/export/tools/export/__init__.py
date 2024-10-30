@@ -34,7 +34,7 @@ def main():
     gettext.gettext = translate
 
     import argparse
-    from .conf import create_config, check_config
+    from .conf import main as create_config, check_config
     from .lzn import lizenznehmer
     from .proxy import lmproxy
     from nl.export.errors import NoConfig, Unauthorized
@@ -55,6 +55,12 @@ def main():
         action='store_true',
         default=False,
         help='Konfiguration überschreiben, falls vorhanden')
+    sub_config.add_argument(
+        "--show",
+        dest='show',
+        action='store_true',
+        default=False,
+        help='Zeige die derzeitige Konfiguration')
     sub_config.set_defaults(func=create_config)
 
     sub_licencees = subparsers.add_parser(

@@ -25,6 +25,15 @@ def check_config() -> bool:
     return cfgpath.is_file()
 
 
+def main(options: Namespace) -> bool | None:
+    """"""
+    if options.show:
+        show_config(options)
+        return None
+
+    create_config(options)
+
+
 def create_config(options: Namespace) -> bool | None:
     """"""
     from nl.export.config import NLCONFIG
@@ -65,3 +74,22 @@ def create_config(options: Namespace) -> bool | None:
     logger.info(msg)
 
     return True
+
+
+def show_config(options: Namespace) -> bool | None:
+    """"""
+    from nl.export.config import NLCONFIG
+    from nl.export.gapi import TerminalColors
+
+    logger = logging.getLogger()
+    cfgpath = Path(NLCONFIG)
+
+    if not cfgpath.is_file():
+        msg = "Datei existiert nicht"
+        logger.error(msg)
+        return None
+
+    print(TerminalColors.bold(f"Konfiguration: {cfgpath.as_posix()}\n"))
+
+    with cfgpath.open() as cfh:
+        print(cfh.read())
