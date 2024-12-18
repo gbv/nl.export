@@ -43,7 +43,7 @@ class LFormatCSV(AbstractContextManager):
         licencee = {} if licencee is None else licencee.plone_item
 
         ipv4_allow = licencee.get("ipv4_allow", "")
-        ipv4_deny = licencee.get("ipv4_deny", "")
+        ipv4_deny = None
         ezb_id = licencee.get("ezb_id", "")
 
         row = {}

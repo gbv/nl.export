@@ -80,7 +80,7 @@ class LFormatXML(AbstractContextManager):
         row["ezb_id"] = licencee.get("ezb_id", [])
         row["subscriber_group"] = option_title(licencee, "subscriper_group")
         row["ipv4_allow"] = licencee.get("ipv4_allow", [])
-        row["ipv4_deny"] = licencee.get("ipv4_deny", [])
+        row["ipv4_deny"] = []
         row["shib_provider_id"] = licencee.get("shib_provider_id", "")
         row["uid"] = licencee.get("UID", "")
         row["mtime"] = licencee.get("modified", "")
