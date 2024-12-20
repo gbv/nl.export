@@ -74,9 +74,15 @@ def main():
     sub_licencees.add_argument('--ablage',
                                nargs="?",
                                type=Path,
-                               help="Ablageverzeichnis. ",
+                               help="Ablageverzeichnis",
                                metavar="Verzeichnis",
                                default=Path("."))
+    sub_licencees.add_argument(
+        "--only-ascii",
+        dest='only_ascii',
+        action='store_true',
+        default=False,
+        help='Nur ASCII Zeichen für den Dateinamen nutzen, keine Sonderzeichen')
     sub_licencees.add_argument('--status',
                                type=str,
                                help="Status der Lizenz(en). Mehrfachnennung möglich",

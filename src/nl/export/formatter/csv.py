@@ -121,7 +121,7 @@ class LFormatCSV(AbstractContextManager):
         return row
 
     def __enter__(self) -> typing.Any:
-        fname = secure_filename(self.lmodel.productTitle())
+        fname = secure_filename(self.lmodel.productTitle(), only_ascii=self.options.only_ascii)
         self.csvpath = self.destination / f"{fname}.csv"
         self.cfh = self.csvpath.open("w")
         self.writer = csv.writer(self.cfh,

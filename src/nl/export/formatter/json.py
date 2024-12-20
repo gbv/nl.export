@@ -36,7 +36,7 @@ class LFormatJSON(AbstractContextManager):
             json.dump(licencee.plone_item, jfh)
 
     def __enter__(self) -> typing.Any:
-        fname = secure_filename(self.lmodel.productTitle())
+        fname = secure_filename(self.lmodel.productTitle(), only_ascii=self.options.only_ascii)
         self.jpath = self.destination / f"{fname}"
         self.jpath.mkdir(exist_ok=True)
 

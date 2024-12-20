@@ -35,13 +35,16 @@ def option_title(val: dict | str, option: str) -> str:
     return val
 
 
-def secure_filename(input_str: str) -> str:
+def secure_filename(input_str: str, only_ascii=False) -> str:
     # Replace spaces with underscores
     safe_str = input_str.replace(' ', '_')
 
     # Remove any characters that are not alphanumeric, underscores, dots, or hyphens
-    safe_str = re.sub(r'[^\w.-]', '', safe_str)
-
+    if only_ascii:
+        safe_str = re.sub(r'[^\w.-]', '', safe_str, flags=re.ASCII)
+    else:
+        safe_str = re.sub(r'[^\w.-]', '', safe_str)
+        
     # Limit the length of the filename
     max_length = 255  # Adjust according to the file system's limitations
     safe_str = safe_str[:max_length]

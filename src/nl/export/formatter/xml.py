@@ -148,7 +148,7 @@ class LFormatXML(AbstractContextManager):
             inst_node.append(val_node)
 
     def __enter__(self) -> typing.Any:
-        fname = secure_filename(self.lmodel.productTitle())
+        fname = secure_filename(self.lmodel.productTitle(), only_ascii=self.options.only_ascii)
         self.xmlpath = self.destination / f"{fname}.xml"
 
         basexml = b"""<?xml version='1.0' encoding='UTF-8'?>"""
